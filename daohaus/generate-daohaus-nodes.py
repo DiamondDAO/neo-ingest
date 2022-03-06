@@ -5,10 +5,14 @@ from neo4j import GraphDatabase
 import pandas as pd
 import s3fs
 from dotenv import load_dotenv
-from helpers.cypher import create_dao_nodes, create_member_nodes, create_proposal_nodes, create_token_nodes
-from helpers.s3 import write_df_to_s3, set_object_private, read_df_from_s3
-from helpers.proposals import label_desc, label_proposal_type, label_status, label_title
+import sys
+
+sys.path.append(".")
 import os
+
+from daohaus.helpers.cypher import create_dao_nodes, create_member_nodes, create_proposal_nodes, create_token_nodes
+from daohaus.helpers.proposals import label_desc, label_proposal_type, label_status, label_title
+from helpers.s3 import *
 
 
 class ChainverseGraph:
@@ -57,6 +61,7 @@ if __name__ == "__main__":
 
     # write token nodes to graph and then set private
     url = write_df_to_s3(temp_df, BUCKET, "neo/daohaus/nodes/token.csv", resource, s3)
+    print("Token nodes: ", len(temp_df))
     create_token_nodes(url, conn)
     set_object_private(BUCKET, "neo/daohaus/nodes/token.csv", resource)
 
@@ -72,6 +77,7 @@ if __name__ == "__main__":
 
     # write member nodes to graph and then set private
     url = write_df_to_s3(temp_df, BUCKET, "neo/daohaus/nodes/member.csv", resource, s3)
+    print("Member nodes: ", len(temp_df))
     create_member_nodes(url, conn)
     set_object_private(BUCKET, "neo/daohaus/nodes/member.csv", resource)
 
@@ -111,6 +117,7 @@ if __name__ == "__main__":
 
     # write dao nodes to graph and then set private
     url = write_df_to_s3(temp_df, BUCKET, "neo/daohaus/nodes/dao.csv", resource, s3)
+    print("DAO nodes: ", len(temp_df))
     create_dao_nodes(url, conn)
     set_object_private(BUCKET, "neo/daohaus/nodes/dao.csv", resource)
 
@@ -161,6 +168,7 @@ if __name__ == "__main__":
 
     # write proposal nodes to graph and then set private
     url = write_df_to_s3(temp_df, BUCKET, "neo/daohaus/nodes/proposal.csv", resource, s3)
+    print("Proposal nodes: ", len(temp_df))
     create_proposal_nodes(url, conn)
     set_object_private(BUCKET, "neo/daohaus/nodes/proposal.csv", resource)
 

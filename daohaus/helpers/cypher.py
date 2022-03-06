@@ -16,12 +16,19 @@ def create_token_nodes(url, conn):
 
 def create_member_nodes(url, conn):
 
+    unique_query = """CREATE CONSTRAINT UniqueDAOAndWallet IF NOT EXISTS FOR (d: daohaus_member) REQUIRE (d.address, d.daoAddress) IS UNIQUE """
+
+    conn.query(unique_query)
+
     member_node_query = f"""
+                        USING PERIODIC COMMIT 1000
                         LOAD CSV WITH HEADERS FROM '{url}' AS members
-                        MERGE(t:Member:Daohaus {{address: members.address, daoAddress: members.daoAddress}})
+                        MERGE(t:Member:Daohaus:daohaus_member {{address: members.address, daoAddress: members.daoAddress}})
+                        MERGE(w:Wallet {{address: members.address}})
                         set t = members
                     """
     conn.query(member_node_query)
+
     print("member nodes created")
 
 
@@ -82,8 +89,9 @@ def create_approved_token_relationships(url, conn):
 def create_member_relationships(url, conn):
     relationship_query = f"""
                          LOAD CSV WITH HEADERS FROM '{url}' as row
-                         MATCH (d:Daohaus:Dao {{address: row.dao}}), (m:Daohaus:Member {{address: row.member, daoAddress: row.dao}})
+                         MATCH (d:Daohaus:Dao {{address: row.dao}}), (m:Daohaus:Member {{address: row.member, daoAddress: row.dao}}), (w:Wallet {{address: row.member}})
                          MERGE (m)-[r:IS_MEMBER]->(d)
+                         MERGE (w)-[:IS_MEMBER]->(m)
                         """
 
     conn.query(relationship_query)

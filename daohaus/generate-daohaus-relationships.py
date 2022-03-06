@@ -5,7 +5,11 @@ from neo4j import GraphDatabase
 import pandas as pd
 import s3fs
 from dotenv import load_dotenv
-from helpers.cypher import (
+import sys
+import os
+sys.path.append(".")
+
+from daohaus.helpers.cypher import (
     create_dao_relationships,
     create_approved_token_relationships,
     create_member_relationships,
@@ -13,30 +17,7 @@ from helpers.cypher import (
     create_vote_relationships,
 )
 from helpers.s3 import write_df_to_s3, set_object_private, read_df_from_s3
-from helpers.proposals import label_desc, label_proposal_type, label_status, label_title
-import os
-
-
-class ChainverseGraph:
-    def __init__(self, uri, user, password):
-        self.__driver = GraphDatabase.driver(uri, auth=(user, password))
-
-    def close(self):
-        self.__driver.close()
-
-    def query(self, query, parameters=None, db=None):
-        assert self.__driver is not None, "Driver not initialized!"
-        session = None
-        response = None
-        try:
-            session = self.__driver.session(database=db) if db is not None else self.__driver.session()
-            response = list(session.run(query, parameters))
-        except Exception as e:
-            print("Query failed:", e)
-        finally:
-            if session is not None:
-                session.close()
-        return response
+from helpers.graph import ChainverseGraph
 
 
 if __name__ == "__main__":

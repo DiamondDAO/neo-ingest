@@ -1,8 +1,11 @@
 import boto3
 import json
 import pandas as pd
-from helpers.s3 import write_df_to_s3
 from dotenv import load_dotenv
+import sys
+sys.path.append(".")
+
+from helpers.s3 import write_df_to_s3
 
 load_dotenv()
 resource = boto3.resource("s3")
