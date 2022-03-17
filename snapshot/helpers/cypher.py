@@ -1,18 +1,4 @@
-def create_vote_nodes(url, conn):
-
-    unique_query = """CREATE CONSTRAINT UniqueID IF NOT EXISTS FOR (d:snapshot_vote) REQUIRE d.id IS UNIQUE"""
-
-    conn.query(unique_query)
-
-    vote_node_query = f"""
-                        USING PERIODIC COMMIT 1000
-                        LOAD CSV WITH HEADERS FROM '{url}' AS votes
-                        CREATE (v:snapshot_vote {{id: votes.id}})
-                        set v = votes
-                        """
-
-    conn.query(vote_node_query)
-    print("vote nodes created")
+def create_wallet_nodes(url, conn):
 
     wallet_node_query = f"""
                         USING PERIODIC COMMIT 1000
@@ -23,6 +9,22 @@ def create_vote_nodes(url, conn):
 
     conn.query(wallet_node_query)
     print("wallet nodes created")
+
+
+def create_token_nodes(url, conn):
+
+    unique_query = """CREATE CONSTRAINT UniqueTokenAddress IF NOT EXISTS FOR (d:Token) REQUIRE d.address IS UNIQUE"""
+
+    conn.query(unique_query)
+
+    token_node_query = f"""
+                        LOAD CSV WITH HEADERS FROM '{url}' AS tokens
+                        MERGE(t:Token {{address: tokens.address}})
+                        ON CREATE set t = tokens
+                    """
+
+    conn.query(token_node_query)
+    print("token nodes created")
 
 
 def create_space_nodes(url, conn):

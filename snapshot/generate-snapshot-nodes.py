@@ -120,10 +120,46 @@ if __name__ == "__main__":
     create_space_nodes(url, conn)
     set_object_private(BUCKET, "neo/snapshot/nodes/space.csv", resource)
 
-    strategy_df = pd.DataFrame(strategy_list)
-    print("Strategy nodes: ", len(strategy_df))
-    url = write_df_to_s3(strategy_df, BUCKET, "neo/snapshot/nodes/strategy.csv", resource, s3)
-    set_object_private(BUCKET, "neo/snapshot/nodes/strategy.csv", resource)
+    strategy_relationships = []
+    token_list = []
+    for item in strategy_list:
+        current_dict = {}
+        space = item.get("space", "")
+        if space == "":
+            continue
+        current_dict["space"] = space
+
+        entry = item.get("strategy", "")
+        if entry == "":
+            continue
+
+        try:
+            token_dict = {}
+            params = entry.get("params", "")
+            if params == "":
+                continue
+            address = params.get("address", "")
+            if address == "" or not isinstance(address, str):
+                continue
+            token_dict["address"] = address
+            token_dict["symbol"] = params.get("symbol", "")
+            token_dict["decimals"] = params.get("decimals", -1)
+            current_dict["token"] = token_dict["address"]
+            token_list.append(token_dict)
+            strategy_relationships.append(current_dict)
+        except:
+            continue
+
+    print(token_list[0])
+    token_df = pd.DataFrame(token_list)
+    token_df.drop_duplicates(subset="address", inplace=True)
+    print("Token nodes: ", len(token_df))
+    url = write_df_to_s3(token_df, BUCKET, "neo/snapshot/nodes/token.csv", resource, s3)
+    create_token_nodes(url, conn)
+    set_object_private(BUCKET, "neo/snapshot/nodes/token.csv", resource)
+
+    strategy_df = pd.DataFrame(strategy_relationships)
+    write_df_to_s3(strategy_df, BUCKET, "neo/snapshot/relationships/strategy.csv", resource, s3, "private")
 
     # get vote nodes
     content_object = s3.get_object(Bucket="chainverse", Key="snapshot/votes/01-07-2022/votes.json")
@@ -152,12 +188,14 @@ if __name__ == "__main__":
     vote_df.drop_duplicates("id", inplace=True)
     print(len(vote_df))
 
-    SPLIT_SIZE = 20000
+    SPLIT_SIZE = os.environ.get("SPLIT_SIZE", 20000)
+    SPLIT_SIZE = int(SPLIT_SIZE)
+    
     list_vote_chunks = split_dataframe(vote_df, SPLIT_SIZE)
     for idx, vote_batch in enumerate(list_vote_chunks):
-        url = write_df_to_s3(vote_batch, BUCKET, f"neo/snapshot/nodes/vote-{idx * SPLIT_SIZE}.csv", resource, s3)
-        create_vote_nodes(url, conn)
-        set_object_private(BUCKET, f"neo/snapshot/nodes/vote-{idx * SPLIT_SIZE}.csv", resource)
+        url = write_df_to_s3(vote_batch, BUCKET, f"neo/snapshot/nodes/votes/vote-{idx * SPLIT_SIZE}.csv", resource, s3)
+        create_wallet_nodes(url, conn)
+        set_object_private(BUCKET, f"neo/snapshot/nodes/votes/vote-{idx * SPLIT_SIZE}.csv", resource)
         print(idx * SPLIT_SIZE)
 
     # add labels for vote nodes to speed up initial query
