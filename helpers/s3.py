@@ -12,7 +12,7 @@ def write_df_to_s3(df, BUCKET, file_name, resource, s3, ACL="public-read"):
 
 
 def read_df_from_s3(BUCKET, file_name):
-    df = pd.read_csv(f"s3://{BUCKET}/{file_name}")
+    df = pd.read_csv(f"s3://{BUCKET}/{file_name}", lineterminator='\n')
     return df
 
 
