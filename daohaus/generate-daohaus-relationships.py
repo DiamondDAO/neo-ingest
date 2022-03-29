@@ -73,7 +73,7 @@ if __name__ == "__main__":
     # create dao primary relationships
     primary_dao_relationship_df = pd.DataFrame(primary_dao_list)
     url = write_df_to_s3(primary_dao_relationship_df, BUCKET, "neo/daohaus/relationships/dao.csv", resource, s3)
-    create_dao_relationships(url, conn)
+    #create_dao_relationships(url, conn)
     set_object_private(BUCKET, "neo/daohaus/relationships/dao.csv", resource)
 
     # create approved token relationships
@@ -81,7 +81,7 @@ if __name__ == "__main__":
     url = write_df_to_s3(
         approved_token_relationship_df, BUCKET, "neo/daohaus/relationships/approved_token.csv", resource, s3
     )
-    create_approved_token_relationships(url, conn)
+    #create_approved_token_relationships(url, conn)
     set_object_private(BUCKET, "neo/daohaus/relationships/approved_token.csv", resource)
 
     member_json = member_df.to_dict("records")
@@ -94,7 +94,7 @@ if __name__ == "__main__":
     # create primary member relationships
     member_dao_df = pd.DataFrame(member_dao_list)
     url = write_df_to_s3(member_dao_df, BUCKET, "neo/daohaus/relationships/member.csv", resource, s3)
-    create_member_relationships(url, conn)
+    #create_member_relationships(url, conn)
     set_object_private(BUCKET, "neo/daohaus/relationships/member.csv", resource)
 
     proposal_json = proposal_df.to_dict("records")

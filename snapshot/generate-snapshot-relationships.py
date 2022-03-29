@@ -40,13 +40,15 @@ if __name__ == "__main__":
         current_dict['space'] = item['space']
         proposal_rels.append(current_dict)
 
+    ### This was saving back to "neo/daohaus/relationships/proposal.csv"
+
     primary_proposal_relationship_df = pd.DataFrame(proposal_rels)
     print(f"Proposals: {len(primary_proposal_relationship_df)}")
     url = write_df_to_s3(
-        primary_proposal_relationship_df, BUCKET, "neo/daohaus/relationships/proposal.csv", resource, s3
+        primary_proposal_relationship_df, BUCKET, "neo/snapshot/relationships/proposal.csv", resource, s3
     )
     create_proposal_relationships(url, conn)
-    set_object_private(BUCKET, "neo/daohaus/relationships/proposal.csv", resource)
+    set_object_private(BUCKET, "neo/snapshot/relationships/proposal.csv", resource)
 
     # create vote relationships
     content_object = s3.get_object(Bucket="chainverse", Key="snapshot/votes/01-07-2022/votes.json")
