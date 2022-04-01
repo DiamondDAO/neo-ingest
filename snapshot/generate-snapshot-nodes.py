@@ -95,13 +95,13 @@ if __name__ == "__main__":
         current_dict = {}
         current_dict["id"] = entry["id"]
         current_dict["name"] = entry["name"]
-        current_dict["about"] = entry["about"].replace('"', "").replace("'", "").replace("\\", "").strip()
-        current_dict["network"] = entry["network"]
-
-        try:
-            current_dict["avatar"] = entry["avatar"]
-        except:
-            current_dict["avatar"] = ""
+        current_dict["about"] = entry.get("about", "").replace('"', "").replace("'", "").replace("\\", "").strip()
+        current_dict["network"] = entry.get("network", "")
+        current_dict["website"] = entry.get("website", "")
+        current_dict["twitter"] = entry.get("twitter", "")
+        current_dict["github"] = entry.get("github", "")
+        current_dict["avatar"] = entry.get("avatar", "")
+        current_dict["symbol"] = entry.get("symbol", "")
 
         try:
             current_dict["minScore"] = entry["filters"]["minScore"]
@@ -113,11 +113,6 @@ if __name__ == "__main__":
         except:
             current_dict["onlyMembers"] = False
 
-        try:
-            current_dict["symbol"] = entry["symbol"]
-        except:
-            current_dict["symbol"] = ""
-
         for strategy in entry["strategies"]:
             strategy_list.append({"space": entry["id"], "strategy": strategy})
 
@@ -125,6 +120,11 @@ if __name__ == "__main__":
 
     space_df = pd.DataFrame(space_list)
     print("Space nodes: ", len(space_df))
+
+    space_df["website"].fillna("", inplace=True)
+    space_df["twitter"].fillna("", inplace=True)
+    space_df["github"].fillna("", inplace=True)
+    space_df["avatar"].fillna("", inplace=True)
 
     url = write_df_to_s3(space_df, BUCKET, "neo/snapshot/nodes/space.csv", resource, s3)
     create_space_nodes(url, conn)
