@@ -1,9 +1,9 @@
 def create_proposal_relationships(url, conn):
-
+    # fixed typo was {id: proposals.id when it should have been {id: proposals.proposals}
     proposal_rel_query = f"""
-                        USING PERIODIC COMMIT 10000
+                        USING PERIODIC COMMIT 1000
                         LOAD CSV WITH HEADERS FROM '{url}' AS proposals
-                        MATCH (p:snapshot_proposal {{id: proposals.id}}), (author:Wallet {{address: proposals.author}}), (space:snapshot_space {{id: proposals.space}})
+                        MATCH (p:Snapshot:Proposal {{id: proposals.proposal}}), (author:Wallet {{address: proposals.author}}), (space:Snapshot:Space {{id: proposals.space}})
                         MERGE (author)-[:AUTHORED]->(p)
                         MERGE (space)-[:HAS_PROPOSAL]->(p)
                     """
@@ -17,8 +17,9 @@ def create_vote_relationships(url, conn):
     vote_rel_query = f"""
                     USING PERIODIC COMMIT 10000
                     LOAD CSV WITH HEADERS FROM '{url}' as votes
-                    MATCH (voter:Wallet {{address: votes.voter}}), (p:snapshot_proposal {{id: votes.proposal}})
-                    MERGE (voter)-[:VOTED {{ipfs: votes.ipfs, createdAt: votes.createdAt, choice: votes.choice}}]->(p)
+                    MATCH (voter:Wallet {{address: votes.voter}}), (p:Proposal {{id: votes.proposal}})
+                    WITH voter, p, datetime(apoc.date.toISO8601(toInteger(votes.createdAt), 's')) AS cAt, votes
+                    MERGE (voter)-[:VOTED {{ipfs: votes.ipfs, createdAt: cAt, choice: votes.choice}}]->(p)
                     """
 
     conn.query(vote_rel_query)
